@@ -1,9 +1,7 @@
 <?php
 
-// This script will print out CSV lines to identify sites, contacts, instrcutors, and assignments affected by
-// Issue A: Released student grades not recorded in Gradebook, and
-// Issue B: Assignments with severed gradebook associations
-// Instances of Issue A will have an extra column, identifying the affected student (by EID).
+// This script will print out CSV lines to identify sites, contacts, instrcutors, assignments,
+// and students (by EID) affected by the bug, "Released student grades not recorded in Gradebook"
 
 // Enter your MySQL / MariaDB parameters
 $sakai_host = "";
@@ -80,15 +78,12 @@ try {
                 if (isUserActiveInSite($dbc, $site_id, $user_id)) {
                     $ownerList = getOwnerList($dbc, $site_id);
                     $contact = get_site_contact($dbc, $site_id);
-                    echo "$site_id, \"Issue A\", \"$contact\", \"$ownerList\", \"$asn_title\", $eid\n";
+                    echo "$site_id, \"$contact\", \"$ownerList\", \"$asn_title\", $eid\n";
                 }
             }
         }
     }
     
-    // Now check assignments where the gradebook item originates from Gradebook
-    $exception_arr = array(); // for capturing Issue B instances to print last
-
     foreach ($site_hash as $site_id => $site_title) {
         $query = "select A.ASSIGNMENT_ID, A.TITLE, P.VALUE FROM ASN_ASSIGNMENT A, ASN_ASSIGNMENT_PROPERTIES P WHERE A.CONTEXT='$site_id' and A.DRAFT=b'0' and A.DELETED=b'0' and P.ASSIGNMENT_ID=A.ASSIGNMENT_ID AND P.NAME='prop_new_assignment_add_to_gradebook'";
 
@@ -113,11 +108,8 @@ try {
                         if (($gbi_id != null) & isGradebookItemNotCounted($dbc, $gbi_id))
                             continue;
                     }
-                    
-                    $ownerList = getOwnerList($dbc, $site_id);
-                    $contact = get_site_contact($dbc, $site_id);
-                    $line = "$site_id, \"Issue B\", \"$contact\", \"$ownerList\", \"$asn_title\"";
-                    array_push($exception_arr, $line);
+
+                    // Do nothing further (we formerly logged any broken gradebook associations)
                 }
                 else if (! isGradebookItemNotCounted($dbc, $gbi_id)) {
 
@@ -132,7 +124,7 @@ try {
                             if (isUserActiveInSite($dbc, $site_id, $user_id)) {
                                 $ownerList = getOwnerList($dbc, $site_id);
                                 $contact = get_site_contact($dbc, $site_id);
-                                echo "$site_id, \"Issue A\", \"$contact\", \"$ownerList\", \"$asn_title\", $eid\n";
+                                echo "$site_id, \"$contact\", \"$ownerList\", \"$asn_title\", $eid\n";
                             }
                         }
                     }
@@ -140,10 +132,6 @@ try {
             }
         }
         $r->closeCursor();
-    }
-
-    foreach ($exception_arr as $exception) {
-        echo "$exception\n";
     }
 
 }
