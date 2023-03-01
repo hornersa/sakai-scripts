@@ -165,7 +165,7 @@ function isValidAsnId($dbc, $asn_id)
 function getScoredAndReleasedSubmissions($dbc, $asn_id)
 {
     $result = array(); // key -> $sub_id; value -> submitter internal userid
-    $query = "select M.USER_ID, S.SUBMISSION_ID, S.GRADE FROM SAKAI_USER_ID_MAP M, ASN_SUBMISSION S, ASN_SUBMISSION_SUBMITTER SS WHERE S.ASSIGNMENT_ID='$asn_id' and SS.SUBMITTER=M.USER_ID and S.SUBMISSION_ID=SS.SUBMISSION_ID and S.GRADE IS NOT NULL AND S.RETURNED_DATE IS NOT NULL";
+    $query = "select M.USER_ID, S.SUBMISSION_ID, S.GRADE FROM SAKAI_USER_ID_MAP M, ASN_SUBMISSION S, ASN_SUBMISSION_SUBMITTER SS WHERE S.ASSIGNMENT_ID='$asn_id' and SS.SUBMITTER=M.USER_ID and S.SUBMISSION_ID=SS.SUBMISSION_ID and S.GRADE IS NOT NULL AND S.RETURNED_DATE IS NOT NULL and S.GRADE_RELEASED = b'1'";
 
 	$r = $dbc->query($query);
 	$num_rows = $r->rowCount();
